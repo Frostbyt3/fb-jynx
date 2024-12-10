@@ -58,21 +58,6 @@ RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
     PlayerJob = JobInfo
 end)
 
-local dutyKey = false
-local function onDuty()
-    dutyKey = true
-    CreateThread(function()
-        while dutyKey do
-            if IsControlJustReleased(0, 38) then
-                TriggerServerEvent('QBCore:ToggleDuty')
-                dutyKey = false
-                break
-            end
-            Wait(0)
-        end
-    end)
-end
-
 local function RemovePed(p)
     SetTimeout(60000, function()
         if DoesEntityExist(p) then
@@ -88,6 +73,12 @@ local function ResetNpcTask()
     if NpcData.Npc and DoesEntityExist(NpcData.Npc) then
         local npc = NpcData.Npc
         local vehicle = GetVehiclePedIsIn(npc, false) -- Get NPC's vehicle
+
+        -- Handle NPC exiting the vehicle
+        if vehicle and DoesEntityExist(vehicle) then
+            TaskLeaveVehicle(npc, vehicle, 0) -- Make the NPC leave the vehicle
+            Wait(2000)
+        end
 
         -- Clear NPC tasks and adjust behavior
         ClearPedTasksImmediately(npc)
@@ -188,7 +179,11 @@ local function GetDeliveryLocation()
                                     calcTip = meterData.currentFare
                                 end
                                 local Tip = math.ceil(calcTip * (Config.tipPercentage / 100))
-                                TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                                if Tip < 5 then
+                                    TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                                else
+                                    TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                                end
                                 ResetCrashCount()
                                 meterActive = false
                                 SendNUIMessage({
@@ -215,7 +210,11 @@ local function GetDeliveryLocation()
                                     calcTip = meterData.currentFare
                                 end
                                 local Tip = math.ceil(calcTip * (Config.recklessPercentage / 100)) -- Reckless Driving lowers the tip percentage
-                                TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, true, Tip)
+                                if Tip < 5 then
+                                    TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                                else
+                                    TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                                end
                                 ResetCrashCount()
                                 meterActive = false
                                 SendNUIMessage({
@@ -518,6 +517,7 @@ RegisterNetEvent('fb-jynx:client:toggleDuty', function()
     else
         QBCore.Functions.Notify('You are now On Duty', 'success')
         NpcDuty = true
+        TriggerEvent('fb-jynx:client:DoNpcRide') -- Ensure NPC ride is triggered after toggling on duty
     end
 end)
 
@@ -680,7 +680,7 @@ local delieveryZone
 function createNpcPickUpLocation()
     zone = BoxZone:Create(Config.PZLocations.PickupLocations[NpcData.CurrentNpc].coord, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].height, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].width, {
         heading = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].heading,
-        debugPoly = false,
+        debugPoly = Config.DebugPoly,
         minZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].minZ,
         maxZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].maxZ,
     })
@@ -701,7 +701,7 @@ end
 function createNpcDelieveryLocation()
     delieveryZone = BoxZone:Create(Config.PZLocations.DropLocations[NpcData.CurrentDeliver].coord, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].height, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].width, {
         heading = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].heading,
-        debugPoly = false,
+        debugPoly = Config.DebugPoly,
         minZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].minZ,
         maxZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].maxZ,
     })
@@ -805,7 +805,11 @@ function dropNpcPoly()
                             calcTip = meterData.currentFare
                         end
                         local Tip = math.ceil(calcTip * (Config.tipPercentage / 100))
-                        TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                        if Tip < 5 then
+                            TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                        else
+                            TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                        end
                         ResetCrashCount()
                         meterActive = false
                         SendNUIMessage({
@@ -815,12 +819,6 @@ function dropNpcPoly()
                         if NpcData.DeliveryBlip ~= nil then
                             RemoveBlip(NpcData.DeliveryBlip)
                         end
-                        --[[ local RemovePed = function(p)
-                            SetTimeout(60000, function()
-                                DeletePed(p)
-                            end)
-                        end
-                        RemovePed(NpcData.Npc) ]]
                         ResetNpcTask()
                         delieveryZone:destroy()
                         recklessDriving = false
@@ -833,7 +831,11 @@ function dropNpcPoly()
                             calcTip = meterData.currentFare
                         end
                         local Tip = math.ceil(calcTip * (Config.recklessPercentage / 100)) -- Reckless Driving lowers the tip percentage
-                        TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, true, Tip)
+                        if Tip < 5 then
+                            TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                        else
+                            TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                        end
                         ResetCrashCount()
                         meterActive = false
                         SendNUIMessage({
@@ -843,12 +845,6 @@ function dropNpcPoly()
                         if NpcData.DeliveryBlip ~= nil then
                             RemoveBlip(NpcData.DeliveryBlip)
                         end
-                        --[[ local RemovePed = function(p)
-                            SetTimeout(60000, function()
-                                DeletePed(p)
-                            end)
-                        end
-                        RemovePed(NpcData.Npc) ]]
                         ResetNpcTask()
                         delieveryZone:destroy()
                         recklessDriving = false

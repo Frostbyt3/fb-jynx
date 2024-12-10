@@ -1,5 +1,7 @@
 Config = {
 
+    DebugPoly = true,
+
     jobRequired = "jynx",
 
     -- set this to false if you want to use distance checks
