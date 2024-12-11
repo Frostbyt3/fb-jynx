@@ -76,8 +76,15 @@ local function ResetNpcTask()
 
         -- Handle NPC exiting the vehicle
         if vehicle and DoesEntityExist(vehicle) then
+            TaskOpenVehicleDoor(npc, vehicle, 1.0)
+            Wait(300)
             TaskLeaveVehicle(npc, vehicle, 0) -- Make the NPC leave the vehicle
-            Wait(2000)
+            Wait(300)
+            --[[ local veh = GetVehiclePedIsUsing(PlayerPedId())
+            for i = 0, 5 do
+                SetVehicleDoorShut(veh, i, false) -- will close all doors from 0-5
+            end ]]
+            Wait(500)
         end
 
         -- Clear NPC tasks and adjust behavior
@@ -86,6 +93,8 @@ local function ResetNpcTask()
         SetPedCombatAttributes(npc, 46, true)
         SetPedCanBeDraggedOut(npc, false)
         TaskWanderStandard(npc, 10.0, 10) -- Make the NPC wander away rather than run
+        Wait(2000)
+        SetVehicleDoorsShut(vehicle, false)
 
         RemovePed(npc)
     end

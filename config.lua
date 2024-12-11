@@ -74,10 +74,10 @@ Config = {
             [21] = vector4(218.34, 677.47, 189.26, 359.5),
             [22] = vector4(263.2, 1138.81, 221.75, 203.5),
             [23] = vector4(220.64, -1010.81, 29.22, 160.5),
-            [24] = vector4(409.14, -998.76, 28.67, 356.59), -- START CUSTOM
-            [25] = vector4(200.04, -223.58, 53.38, 249.8),
-            [26] = vector4(321.31, -268.55, 53.21, 253.73),
-            [27] = vector4(292.26, 176.92, 103.53, 68.53),
+            [24] = vector4(409.14, -998.76, 28.67, 356.59), -- MRPD
+            [25] = vector4(200.04, -223.58, 53.38, 249.8), -- White Widow
+            [26] = vector4(321.31, -268.55, 53.21, 253.73), -- Hawick Ave. Fleeca
+            [27] = vector4(292.26, 176.92, 103.53, 68.53), -- Chinese Theater
             [28] = vector4(-565.81, 268.23, 82.32, 87.88), -- Tequi-La-La
             [29] = vector4(-2981.2, 389.8, 14.27, 355.34), -- Rob's Liquor
             [30] = vector4(-3031.93, 592.9, 7.1, 198.04), -- 24/7 (804)
@@ -122,17 +122,17 @@ Config = {
             [14] = {coord = vector3(-756.46, -35.84, 37.69), height = 17.6, width = 4.2, heading = 297, minZ = 36.74, maxZ = 38.54},
             [15] = {coord = vector3(-1285.33, 293.67, 64.83), height = 17.6, width = 4.2, heading = 241, minZ = 63.88, maxZ = 65.68},
             [16] = {coord = vector3(-806.68, 825.2, 202.81), height = 17.6, width = 4.2, heading = 276, minZ = 200.46, maxZ = 204.66},
-            [17] = {coord = vector3(224.14, -857.25, 30.14), height = 17.6, width = 4.2, heading = 343, minZ = 29, maxZ = 32},
-            [18] = {coord = vector3(-561.94, 270.34, 83.02), height = 17.6, width = 4.2, heading = 175, minZ = 81, maxZ = 85},
-            [19] = {coord = vector3(-2977.94, 391.63, 15.02), height = 17.6, width = 4.2, heading = 89, minZ = 14, maxZ = 17},
-            [20] = {coord = vector3(-3032.68, 547.93, 7.51), height = 17.6, width = 4.2, heading = 273, minZ = 6, maxZ = 9},
-            [21] = {coord = vector3(-781.69, 5540.62, 33.64), height = 17.6, width = 4.2, heading = 4, minZ = 32, maxZ = 35},
-            [22] = {coord = vector3(-296.35, 6251.3, 31.45), height = 17.6, width = 4.2, heading = 227, minZ = 30, maxZ = 33},
-            [23] = {coord = vector3(89.67, 6399.36, 31.4), height = 17.6, width = 4.2, heading = 309, minZ = 30, maxZ = 33},
-            [24] = {coord = vector3(1592.19, 3641.37, 35.11), height = 17.6, width = 4.2, heading = 124, minZ = 34, maxZ = 37},
-            [25] = {coord = vector3(331.54, 2635.57, 44.45), height = 17.6, width = 4.2, heading = 116, minZ = 43, maxZ = 46},
-            [26] = {coord = vector3(1140.87, 2664.54, 38.16), height = 17.6, width = 4.2, heading = 90, minZ = 37, maxZ = 40},
-            [27] = {coord = vector3(1851.24, 2585.89, 45.67), height = 17.6, width = 4.2, heading = 270, minZ = 44, maxZ = 47},
+            [17] = {coord = vector3(224.99, -854.59, 29.99), height = 17.6, width = 4.2, heading = 343, minZ = 29, maxZ = 32}, -- Legion Square
+            [18] = {coord = vector3(-562.1, 267.35, 82.92), height = 17.6, width = 4.2, heading = 85.5, minZ = 81, maxZ = 85}, -- Tequi-La-La
+            [19] = {coord = vector3(-2981.47, 392.0, 14.87), height = 17.6, width = 4.2, heading = 350, minZ = 14, maxZ = 17}, -- Rob's Liquor
+            [20] = {coord = vector3(-3029.17, 547.91, 7.5), height = 17.6, width = 4.2, heading = 180.5, minZ = 6, maxZ = 9}, -- House (804)
+            [21] = {coord = vector3(-782.78, 5542.65, 33.52), height = 17.6, width = 4.2, heading = 288, minZ = 32, maxZ = 35}, -- Tramway
+            [22] = {coord = vector3(-294.37, 6249.28, 31.29), height = 17.6, width = 4.2, heading = 132, minZ = 30, maxZ = 33}, -- Hen House
+            [23] = {coord = vector3(91.92, 6401.39, 31.24), height = 17.6, width = 4.2, heading = 219, minZ = 30, maxZ = 33}, -- Cluckin' Bell Warehouse
+            [24] = {coord = vector3(1590.07, 3640.18, 35.0), height = 17.6, width = 4.2, heading = 27.6, minZ = 34, maxZ = 37}, -- Sandy Motel
+            [25] = {coord = vector3(328.66, 2634.62, 44.56), height = 17.6, width = 4.2, heading = 204.5, minZ = 43, maxZ = 46}, -- Other Sandy Motel
+            [26] = {coord = vector3(1137.73, 2664.94, 38.01), height = 17.6, width = 4.2, heading = 179, minZ = 37, maxZ = 40}, -- Route 68 Motel
+            [27] = {coord = vector3(1854.41, 2586.04, 45.67), height = 17.6, width = 4.2, heading = 186.5, minZ = 44, maxZ = 47}, -- Prison
         },    
 
         DropLocations = {
