@@ -2,7 +2,9 @@
 A ridesharing service for QBCore similar to Uber/Lyft. More information to come.
 
 If you're using qb-radialmenu, add this to the config.lua:
-```['jynx'] = {
+
+```
+['jynx'] = {
         {
             id = 'toggle_meter',
             title = 'Show/Hide Meter',
@@ -39,4 +41,5 @@ If you're using qb-radialmenu, add this to the config.lua:
             event = 'fb-jynx:client:CancelNpcRide',
             shouldClose = true
         }
-    }```
+    }
+```
