@@ -415,10 +415,10 @@ RegisterNetEvent('fb-jynx:client:DoNpcRide', function()
                                 SendNUIMessage({
                                     action = 'toggleMeter'
                                 })
+                                resetMeter()
                                 ClearPedTasksImmediately(NpcData.Npc)
                                 FreezeEntityPosition(NpcData.Npc, false)
                                 TaskEnterVehicle(NpcData.Npc, veh, -1, freeSeat, 1.0, 0)
-                                resetMeter()
                                 QBCore.Functions.Notify(Lang:t('info.go_to_location'))
                                 if NpcData.NpcBlip ~= nil then
                                     RemoveBlip(NpcData.NpcBlip)
@@ -589,7 +589,7 @@ end)
 
 CreateThread(function()
     while true do
-        Wait(1000)
+        Wait(250)
         if QBCore.Functions.GetPlayerData().job.name == 'jynx' and NpcDuty then
             if not NpcData.Active then
                 TriggerEvent('fb-jynx:client:DoNpcRide')
@@ -705,12 +705,26 @@ local zone
 local delieveryZone
 
 function createNpcPickUpLocation()
-    zone = BoxZone:Create(Config.PZLocations.PickupLocations[NpcData.CurrentNpc].coord, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].height, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].width, {
-        heading = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].heading,
-        debugPoly = Config.DebugPoly,
-        minZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].minZ,
-        maxZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].maxZ,
-    })
+    local PickUpZones = {
+        BoxZone:Create(Config.PZLocations.PickupLocations[NpcData.CurrentNpc].coord, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].height, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].width, {
+            name = 'PickupZone1',
+            heading = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].heading,
+            debugPoly = Config.DebugPoly,
+            minZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].minZ,
+            maxZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].maxZ,
+        }),
+        BoxZone:Create(Config.PZLocations.PickupLocations[NpcData.CurrentNpc].coord, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].height, Config.PZLocations.PickupLocations[NpcData.CurrentNpc].width, {
+            name = 'PickupZone2',
+            heading = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].heading,
+            debugPoly = Config.DebugPoly,
+            minZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].minZ,
+            maxZ = Config.PZLocations.PickupLocations[NpcData.CurrentNpc].maxZ,
+        })
+    }
+    zone = ComboZone:Create(PickUpZones, {
+        name = "PickupCombo",
+         debugPoly = Config.DebugPoly
+        })
 
     zone:onPlayerInOut(function(isPlayerInside)
         if isPlayerInside then
@@ -720,18 +734,35 @@ function createNpcPickUpLocation()
                 callNpcPoly()
             end
         else
-            isInsidePickupZone = false
+            Citizen.SetTimeout(250, function()
+                isInsidePickupZone = false
+                exports['qb-core']:HideText()
+            end)
         end
     end)
 end
 
 function createNpcDelieveryLocation()
-    delieveryZone = BoxZone:Create(Config.PZLocations.DropLocations[NpcData.CurrentDeliver].coord, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].height, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].width, {
-        heading = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].heading,
-        debugPoly = Config.DebugPoly,
-        minZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].minZ,
-        maxZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].maxZ,
-    })
+    local DropoffZones = {
+        BoxZone:Create(Config.PZLocations.DropLocations[NpcData.CurrentDeliver].coord, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].height, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].width, {
+            name = "DropoffZone1",
+            heading = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].heading,
+            debugPoly = Config.DebugPoly,
+            minZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].minZ,
+            maxZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].maxZ,
+        }),
+        BoxZone:Create(Config.PZLocations.DropLocations[NpcData.CurrentDeliver].coord, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].height, Config.PZLocations.DropLocations[NpcData.CurrentDeliver].width, {
+            name = "DropoffZone2",
+            heading = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].heading,
+            debugPoly = Config.DebugPoly,
+            minZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].minZ,
+            maxZ = Config.PZLocations.DropLocations[NpcData.CurrentDeliver].maxZ,
+        })
+    }
+    delieveryZone = ComboZone:Create(DropoffZones, {
+        name = "PickupCombo",
+         debugPoly = Config.DebugPoly
+        })
 
     delieveryZone:onPlayerInOut(function(isPlayerInside)
         if isPlayerInside then
@@ -741,7 +772,10 @@ function createNpcDelieveryLocation()
                 dropNpcPoly()
             end
         else
-            isInsideDropZone = false
+            Citizen.SetTimeout(250, function()
+                isInsideDropZone = false
+                exports['qb-core']:HideText()
+            end)
         end
     end)
 end
@@ -759,11 +793,12 @@ function callNpcPoly()
                     local vehHealth = GetVehicleBodyHealth(veh)
                     local ped = PlayerPedId()
                     local vehLockStatus, curVeh = GetVehicleDoorLockStatus(veh), GetVehiclePedIsIn(ped, false)
+
                     if vehLockStatus ~= 1 then
                         QBCore.Functions.Notify('Unlock your vehicle first!', 'error')
                         return
                     end
-                    --print(vehHealth)
+
                     if vehHealth < 750 then
                         QBCore.Functions.Notify('I\'m not getting in that thing! Get it repaired!', 'error')
                         TriggerEvent('fb-jynx:client:CancelNpcRide')
@@ -812,7 +847,7 @@ function dropNpcPoly()
         while NpcData.NpcTaken do
             local ped = PlayerPedId()
             DrawMarker(1, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].x, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].y, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].z - 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 3.0, 5.0, 245, 66, 156, 150, 0, 0, 0, 1, 0, 0, 0)
-            
+
             if isInsideDropZone then
                 if IsControlJustPressed(0, 38) then
                     exports['qb-core']:KeyPressed()
