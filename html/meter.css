@@ -121,3 +121,19 @@
 .toggle-meter-btn:hover {
     background: rgba(66, 66, 66, 0.657);
 }
+
+.rides {
+    color: red;
+    font-family: sans-serif;
+    font-weight: bold;
+    top: 1vh;
+    left: 1vw;
+}
+
+.tips {
+    color: red;
+    font-family: sans-serif;
+    font-weight: bold;
+    top: 2vh;
+    left: 1vw;
+}

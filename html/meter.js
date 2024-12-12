@@ -1,5 +1,12 @@
 let meterStarted = false;
 
+/* window.addEventListener('message', function(event) {
+  if (event.data.action === 'updateStats') {
+    document.getElementById('ride-count').innerText = event.data.rides;
+    document.getElementById('tip-total').innerText = "$ " + event.data.tips.toFixed(2);
+  }
+}); */
+
 const updateMeter = (meterData) => {
   $("#total-price").html("$ " + meterData.currentFare.toFixed(2));
   $("#total-distance").html(

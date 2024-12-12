@@ -190,8 +190,10 @@ local function GetDeliveryLocation()
                                 local Tip = math.ceil(calcTip * (Config.tipPercentage / 100))
                                 if Tip < 5 then
                                     TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                                    TriggerEvent('fb-jynx:client:rideCompleted', 5)
                                 else
                                     TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                                    TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                                 end
                                 ResetCrashCount()
                                 meterActive = false
@@ -221,8 +223,10 @@ local function GetDeliveryLocation()
                                 local Tip = math.ceil(calcTip * (Config.recklessPercentage / 100)) -- Reckless Driving lowers the tip percentage
                                 if Tip < 5 then
                                     TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                                    TriggerEvent('fb-jynx:client:rideCompleted', 5)
                                 else
                                     TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                                    TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                                 end
                                 ResetCrashCount()
                                 meterActive = false
@@ -431,6 +435,20 @@ RegisterNetEvent('fb-jynx:client:DoNpcRide', function()
     else
         QBCore.Functions.Notify(Lang:t('error.already_mission'))
     end
+end)
+
+local rideCount = 0
+local totalTips = 0
+
+RegisterNetEvent('fb-jynx:client:rideCompleted')
+AddEventHandler('fb-jynx:client:rideCompleted', function(tipAmount)
+    rideCount = rideCount + 1
+    totalTips = totalTips + tipAmount
+    SendNUIMessage({
+        action = 'updateStats',
+        rides = rideCount,
+        tips = totalTips
+    })
 end)
 
 RegisterCommand('jmeter', function(source, args, rawCommand)
@@ -794,6 +812,7 @@ function dropNpcPoly()
         while NpcData.NpcTaken do
             local ped = PlayerPedId()
             DrawMarker(1, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].x, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].y, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].z - 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 3.0, 5.0, 245, 66, 156, 150, 0, 0, 0, 1, 0, 0, 0)
+            
             if isInsideDropZone then
                 if IsControlJustPressed(0, 38) then
                     exports['qb-core']:KeyPressed()
@@ -816,8 +835,10 @@ function dropNpcPoly()
                         local Tip = math.ceil(calcTip * (Config.tipPercentage / 100))
                         if Tip < 5 then
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                            TriggerEvent('fb-jynx:client:rideCompleted', 5)
                         else
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                            TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                         end
                         ResetCrashCount()
                         meterActive = false
@@ -842,8 +863,10 @@ function dropNpcPoly()
                         local Tip = math.ceil(calcTip * (Config.recklessPercentage / 100)) -- Reckless Driving lowers the tip percentage
                         if Tip < 5 then
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
+                            TriggerEvent('fb-jynx:client:rideCompleted', 5)
                         else
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
+                            TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                         end
                         ResetCrashCount()
                         meterActive = false
