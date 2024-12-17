@@ -1,6 +1,7 @@
 Config = {
 
     DebugPoly = false,
+    DebugCode = false,
 
     jobRequired = "jynx",
 
@@ -16,6 +17,7 @@ Config = {
 
     tipPercentage = 25, -- Tip Percentage (25% Default)
     recklessPercentage = 5, -- Tip Percentage (5% Default) when you've wrecked more than once during a ride.
+    bonusTipChance = math.random(1, 5),
     
     NPCLocations = {
         PickupLocations = {
@@ -27,7 +29,7 @@ Config = {
             [6] = vector4(-229.11, -2043.16, 27.75, 233.5),
             [7] = vector4(-1053.23, -2716.2, 13.75, 329.5),
             [8] = vector4(-774.04, -1277.25, 5.15, 171.5),
-            [9] = vector4(-1184.3, -1304.16, 5.24, 293.5),
+            [9] = vector4(-1184.3, -1304.16, 5.24, 293.5), -- Fix?
             [10] = vector4(-1321.28, -833.8, 16.95, 140.5),
             [11] = vector4(-1613.99, -1015.82, 13.12, 342.5),
             [12] = vector4(-1392.74, -584.91, 30.24, 32.5),
@@ -66,7 +68,7 @@ Config = {
             [15] = vector4(23.66, -60.23, 63.62, 341.5),
             [16] = vector4(550.3, 172.55, 100.11, 339.5),
             [17] = vector4(-1048.55, -2540.58, 13.69, 148.5),
-            [18] = vector4(-3.75, -553.12, 37.47, 268.53), -- Fix?
+            [18] = vector4(-3.75, -553.12, 37.47, 268.53),
             [19] = vector4(-7.86, -258.22, 46.9, 68.5),
             [20] = vector4(-743.34, 817.81, 213.6, 219.5),
             [21] = vector4(218.34, 677.47, 189.26, 359.5),
@@ -110,9 +112,9 @@ Config = {
             [4] = {coord = vector3(823.4, -1882.96, 29.29), height = 17.6, width = 15.0, heading = 167, minZ = 28.34, maxZ = 30.14},
             [5] = {coord = vector3(354.05, -1971.57, 24.43), height = 17.6, width = 15.0, heading = 236, minZ = 23.48, maxZ = 25.28},
             [6] = {coord = vector3(-225.61, -2043.63, 27.62), height = 17.6, width = 15.0, heading = 143, minZ = 26.67, maxZ = 28.47},
-            [7] = {coord = vector3(-1048.72, -27110.0, 13.76), height = 17.6, width = 15.0, heading = 240, minZ = 12.81, maxZ = 14.61},
+            [7] = {coord = vector3(-1048.72, -2711.0, 13.76), height = 17.6, width = 15.0, heading = 240, minZ = 12.81, maxZ = 14.61},
             [8] = {coord = vector3(-776.15, -1280.37, 5.0), height = 17.6, width = 15.0, heading = 261, minZ = 4.05, maxZ = 5.85},
-            [9] = {coord = vector3(-1180.3, -13010.02, 5.15), height = 17.6, width = 15.0, heading = 205, minZ = 10.0, maxZ = 6.0},
+            [9] = {coord = vector3(-1181.66, -1303.52, 5.15), height = 17.6, width = 15.0, heading = 205, minZ = 3.5, maxZ = 6.0},
             [10] = {coord = vector3(-1326.52, -833.32, 16.85), height = 17.6, width = 15.0, heading = 225, minZ = 15.9, maxZ = 17.7},
             [11] = {coord = vector3(-1610.24, -1015.33, 13.07), height = 17.6, width = 15.0, heading = 227, minZ = 12.12, maxZ = 13.92},
             [12] = {coord = vector3(-1396.85, -583.72, 30.08), height = 17.6, width = 15.0, heading = 299, minZ = 29.13, maxZ = 30.93},

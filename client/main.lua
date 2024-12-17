@@ -1,6 +1,7 @@
 -- Variables
 
 local QBCore = exports['qb-core']:GetCoreObject()
+
 local meterIsOpen = false
 local meterActive = false
 local lastLocation = nil
@@ -38,27 +39,26 @@ local NpcData = {
     distanceLeft = 0
 }
 
--- events
---just to prevent some bug if the resource get restarted on production
-AddEventHandler('onResourceStart', function(resourceName)
+-- Events
+AddEventHandler('onResourceStart', function(resourceName) -- Check for Resource Starting to prevent bugs when the resource gets restarted
     PlayerJob = QBCore.Functions.GetPlayerData().job
     if Config.UseTarget then
         setupTarget()
     end
 end)
 
-RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function() -- Check for Player Loaded Updates
     PlayerJob = QBCore.Functions.GetPlayerData().job
     if Config.UseTarget then
         setupTarget()
     end
 end)
 
-RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
+RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo) -- Check for Job Updates
     PlayerJob = JobInfo
 end)
 
-local function RemovePed(p)
+local function RemovePed(p) -- RemovePed Function. Deletes the selected NPC
     SetTimeout(60000, function()
         if DoesEntityExist(p) then
             ClearPedTasksImmediately(p)  -- Stop any ongoing tasks
@@ -68,8 +68,7 @@ local function RemovePed(p)
     end)
 end
 
-local function ResetNpcTask()
-    -- Check if the NPC exists in the current task
+local function ResetNpcTask() -- Reset NPC Task so that they aren't wanting to fight the player
     if NpcData.Npc and DoesEntityExist(NpcData.Npc) then
         local npc = NpcData.Npc
         local vehicle = GetVehiclePedIsIn(npc, false) -- Get NPC's vehicle
@@ -79,15 +78,12 @@ local function ResetNpcTask()
             TaskOpenVehicleDoor(npc, vehicle, 1.0)
             Wait(300)
             TaskLeaveVehicle(npc, vehicle, 0) -- Make the NPC leave the vehicle
-            Wait(300)
-            --[[ local veh = GetVehiclePedIsUsing(PlayerPedId())
-            for i = 0, 5 do
-                SetVehicleDoorShut(veh, i, false) -- will close all doors from 0-5
-            end ]]
-            Wait(500)
+            Wait(800)
         end
 
         -- Clear NPC tasks and adjust behavior
+        SetEntityAsMissionEntity(NpcData.Npc, false, true)
+        SetEntityAsNoLongerNeeded(NpcData.Npc)
         ClearPedTasksImmediately(npc)
         SetPedFleeAttributes(npc, 0, false)
         SetPedCombatAttributes(npc, 46, true)
@@ -115,7 +111,7 @@ local function ResetNpcTask()
     }
 end
 
-local function resetMeter()
+local function resetMeter() -- Reset meter stacks back to 0
     meterData = {
         fareAmount = 6,
         currentFare = 0,
@@ -125,11 +121,11 @@ local function resetMeter()
     }
 end
 
-local function IsDriver()
+local function IsDriver() -- Check to see if player is the driver
     return GetPedInVehicleSeat(GetVehiclePedIsIn(PlayerPedId(), false), -1) == PlayerPedId()
 end
 
-local function DrawText3D(x, y, z, text)
+local function DrawText3D(x, y, z, text) -- Draw On Screen Text
     SetTextScale(0.35, 0.35)
     SetTextFont(4)
     SetTextProportional(1)
@@ -144,7 +140,7 @@ local function DrawText3D(x, y, z, text)
     ClearDrawOrigin()
 end
 
-local function GetDeliveryLocation()
+local function GetDeliveryLocation() -- Function to grab next dropoff location
     NpcData.CurrentDeliver = math.random(1, #Config.NPCLocations.DropLocations)
     if NpcData.LastDeliver ~= nil then
         while NpcData.LastDeliver ~= NpcData.CurrentDeliver do
@@ -172,9 +168,7 @@ local function GetDeliveryLocation()
                         DrawText3D(Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].x, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].y, Config.NPCLocations.DropLocations[NpcData.CurrentDeliver].z, Lang:t('info.drop_off_npc'))
                         if IsControlJustPressed(0, 38) then
                             local veh = GetVehiclePedIsIn(ped, 0)
-                            TaskLeaveVehicle(NpcData.Npc, veh, 0)
-                            SetEntityAsMissionEntity(NpcData.Npc, false, true)
-                            SetEntityAsNoLongerNeeded(NpcData.Npc)
+                            --TaskLeaveVehicle(NpcData.Npc, veh, 0)
                             local targetCoords = Config.NPCLocations.PickupLocations[NpcData.LastNpc]
                             TaskGoStraightToCoord(NpcData.Npc, targetCoords.x, targetCoords.y, targetCoords.z, 1.0, -1, 0.0, 0.0)
                             SendNUIMessage({
@@ -200,18 +194,23 @@ local function GetDeliveryLocation()
                                 SendNUIMessage({
                                     action = 'resetMeter'
                                 })
-                                QBCore.Functions.Notify(Lang:t('info.person_was_dropped_off'), 'success')
+                                QBCore.Functions.Notify(Lang:t('ride_completed'), "success")
                                 if NpcData.DeliveryBlip ~= nil then
                                     RemoveBlip(NpcData.DeliveryBlip)
                                 end
-                                --[[ local RemovePed = function(p)
-                                    SetTimeout(60000, function()
-                                        DeletePed(p)
-                                    end)
-                                end
-                                RemovePed(NpcData.Npc) ]]
                                 ResetNpcTask()
                                 recklessDriving = false
+                                TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
+
+                                if NpcDuty then
+                                    if Config.DebugCode then QBCore.Functions.Notify('NPCDuty is true', 'debug') end
+                                    QBCore.Functions.Notify(Lang:t("ride_completed"), "debug")
+                                    if not NpcData.Active then
+                                        if Config.DebugCode then QBCore.Functions.Notify('NpcData.Active is false', 'debug') end
+                                        TriggerEvent('fb-jynx:client:DoNpcRide')
+                                    end
+                                end
+                                
                                 break
                             else
                                 local calcTip = 0
@@ -233,18 +232,24 @@ local function GetDeliveryLocation()
                                 SendNUIMessage({
                                     action = 'resetMeter'
                                 })
-                                QBCore.Functions.Notify(Lang:t('info.person_was_dropped_off'), 'success')
+                                --QBCore.Functions.Notify(Lang:t('info.person_was_dropped_off'), 'success')
+                                QBCore.Functions.Notify(Lang:t('ride_completed'), "success")
                                 if NpcData.DeliveryBlip ~= nil then
                                     RemoveBlip(NpcData.DeliveryBlip)
                                 end
-                                --[[ local RemovePed = function(p)
-                                    SetTimeout(60000, function()
-                                        DeletePed(p)
-                                    end)
-                                end
-                                RemovePed(NpcData.Npc) ]]
                                 ResetNpcTask()
                                 recklessDriving = false
+                                TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
+
+                                if NpcDuty then
+                                    if Config.DebugCode then QBCore.Functions.Notify('NPCDuty is true', 'debug') end
+                                    QBCore.Functions.Notify(Lang:t('ride_completed'), "debug")
+                                    if not NpcData.Active then
+                                        if Config.DebugCode then QBCore.Functions.Notify('NpcData.Active is false', 'debug') end
+                                        TriggerEvent('fb-jynx:client:DoNpcRide')
+                                    end
+                                end
+
                                 break
                             end
                         end
@@ -256,7 +261,7 @@ local function GetDeliveryLocation()
     end
 end
 
-local function EnumerateEntitiesWithinDistance(entities, isPlayerEntities, coords, maxDistance)
+--[[ local function EnumerateEntitiesWithinDistance(entities, isPlayerEntities, coords, maxDistance)
     local nearbyEntities = {}
     if coords then
         coords = vector3(coords.x, coords.y, coords.z)
@@ -271,17 +276,9 @@ local function EnumerateEntitiesWithinDistance(entities, isPlayerEntities, coord
         end
     end
     return nearbyEntities
-end
+end ]]
 
-local function GetVehiclesInArea(coords, maxDistance) -- Vehicle inspection in designated area
-    return EnumerateEntitiesWithinDistance(GetGamePool('CVehicle'), false, coords, maxDistance)
-end
-
-local function IsSpawnPointClear(coords, maxDistance) -- Check the spawn point to see if it's empty or not:
-    return #GetVehiclesInArea(coords, maxDistance) == 0
-end
-
-local function calculateFareAmount()
+local function calculateFareAmount() -- Canclulating fare amount constantly
     if meterIsOpen and meterActive and not NpcData.NpcTaken then -- For RP purposes
         local startPos = lastLocation
         local newPos = GetEntityCoords(PlayerPedId())
@@ -321,11 +318,11 @@ local function calculateFareAmount()
     end
 end
 
-local function ResetCrashCount()
+local function ResetCrashCount() -- Reset Crash Count after every NPC Ride
     crashCount = 0
 end
 
-RegisterNetEvent('fb-jynx:client:resetMeter', function(source)
+RegisterNetEvent('fb-jynx:client:resetMeter', function(source) -- Reset Meter Stats back to 0
     if meterIsOpen then
         if meterActive then
             resetMeter()
@@ -338,17 +335,17 @@ RegisterNetEvent('fb-jynx:client:resetMeter', function(source)
     end
 end)
 
-function closeMenuFull()
+function closeMenuFull() -- Close QB-Menu
     exports['qb-menu']:closeMenu()
 end
 
 -- Events
-RegisterNetEvent('fb-jynx:client:DoNpcRide', function()
+RegisterNetEvent('fb-jynx:client:DoNpcRide', function() -- Do an NPC Ride
     if not NpcData.Active then
-        NpcData.CurrentNpc = math.random(1, #Config.NPCLocations.PickupLocations)
+        NpcData.CurrentNpc = math.random(1, #Config.NPCLocations.PickupLocations) -- Random Pickup Location from config
         if NpcData.LastNpc ~= nil then
             while NpcData.LastNpc ~= NpcData.CurrentNpc do
-                NpcData.CurrentNpc = math.random(1, #Config.NPCLocations.PickupLocations)
+                NpcData.CurrentNpc = math.random(1, #Config.NPCLocations.PickupLocations) -- Random Pickup Location from config
             end
         end
 
@@ -439,8 +436,7 @@ end)
 
 local rideCount = 0
 local totalTips = 0
-
-RegisterNetEvent('fb-jynx:client:rideCompleted')
+RegisterNetEvent('fb-jynx:client:rideCompleted') -- This is for future ride tracking
 AddEventHandler('fb-jynx:client:rideCompleted', function(tipAmount)
     rideCount = rideCount + 1
     totalTips = totalTips + tipAmount
@@ -451,11 +447,11 @@ AddEventHandler('fb-jynx:client:rideCompleted', function(tipAmount)
     })
 end)
 
-RegisterCommand('jmeter', function(source, args, rawCommand)
+RegisterCommand('jmeter', function(source, args, rawCommand) -- Command to toggle the NUI Meter in case of other means failing
     TriggerEvent('fb-jynx:client:toggleMeter')
 end)
 
-RegisterNetEvent('fb-jynx:client:CancelNpcRide', function()
+RegisterNetEvent('fb-jynx:client:CancelNpcRide', function() -- Cancel Current Ride
     if NpcData.Active then
         NpcData.Active = false
         NpcData.NpcTaken = false
@@ -464,27 +460,14 @@ RegisterNetEvent('fb-jynx:client:CancelNpcRide', function()
         NpcData.CurrentDeliver = nil
         NpcData.LastDeliver = nil
 
-        if DoesEntityExist(NpcData.Npc) then
-            SetEntityAsMissionEntity(NpcData.Npc, false, true)
---[[             local playerCoords = GetEntityCoords(PlayerPedId())
-            local npcCoords = GetEntityCoords(NpcData.Npc)
-            local runDirection = npcCoords + (npcCoords - playerCoords) * 5 -- Run in the opposite direction
-            local veh = GetVehiclePedIsIn(NpcData.Npc, 0)
-            FreezeEntityPosition(NpcData.Npc, false)
-            if IsPedInAnyVehicle(NpcData.Npc, false) then
-                TaskLeaveVehicle(NpcData.Npc, veh)
-            end
-            TaskSmartFleeCoord(NpcData.Npc, runDirection, 100.0, -1, true, true)
-            Wait(15000) ]]
-            DeleteEntity(NpcData.Npc)
-        end
-
         if NpcData.NpcBlip ~= nil then
             RemoveBlip(NpcData.NpcBlip)
         end
         if NpcData.DeliveryBlip ~= nil then
             RemoveBlip(NpcData.DeliveryBlip)
         end
+
+        ResetNpcTask()
 
         if meterActive then
             SendNUIMessage({
@@ -497,12 +480,16 @@ RegisterNetEvent('fb-jynx:client:CancelNpcRide', function()
         end
 
         QBCore.Functions.Notify(Lang:t('success.mission_cancelled'), 'success')
+
+        if NpcDuty then
+            TriggerEvent('fb-jynx:client:DoNpcRide')
+        end
     else
         QBCore.Functions.Notify(Lang:t('error.no_mission_active'), 'error')
     end
 end)
 
-RegisterNetEvent('fb-jynx:client:toggleMeter', function()
+RegisterNetEvent('fb-jynx:client:toggleMeter', function() -- Toggle the NUI Meter On/Off
     local ped = PlayerPedId()
     if IsPedInAnyVehicle(ped, false) then
         if not meterIsOpen and IsDriver() then
@@ -524,7 +511,7 @@ RegisterNetEvent('fb-jynx:client:toggleMeter', function()
     end
 end)
 
-RegisterNetEvent('fb-jynx:client:enableMeter', function()
+RegisterNetEvent('fb-jynx:client:enableMeter', function() -- Show the NUI Meter
     if meterIsOpen then
         SendNUIMessage({
             action = 'toggleMeter'
@@ -534,7 +521,7 @@ RegisterNetEvent('fb-jynx:client:enableMeter', function()
     end
 end)
 
-RegisterNetEvent('fb-jynx:client:toggleDuty', function()
+RegisterNetEvent('fb-jynx:client:toggleDuty', function() -- Toggle Duty via the Radial Menu
     if NpcDuty then
         if NpcData.Active then
             QBCore.Functions.Notify('Finish or Cancel your current ride.', 'primary')
@@ -544,12 +531,8 @@ RegisterNetEvent('fb-jynx:client:toggleDuty', function()
     else
         QBCore.Functions.Notify('You are now On Duty', 'success')
         NpcDuty = true
-        TriggerEvent('fb-jynx:client:DoNpcRide') -- Ensure NPC ride is triggered after toggling on duty
+        TriggerEvent('fb-jynx:client:DoNpcRide')
     end
-end)
-
-RegisterCommand('jynxduty', function(source, args, rawCommand)
-    TriggerServerEvent('QBCore:ToggleDuty')
 end)
 
 -- NUI Callbacks
@@ -568,7 +551,7 @@ RegisterNUICallback('hideMouse', function(_, cb)
 end)
 
 -- Threads
---[[ CreateThread(function()
+--[[ CreateThread(function() -- This may or may not be used in a future update
     local TaxiBlip = AddBlipForCoord(Config.BlipLocation)
     SetBlipSprite(TaxiBlip, 198)
     SetBlipDisplay(TaxiBlip, 4)
@@ -580,6 +563,7 @@ end)
     EndTextCommandSetBlipName(TaxiBlip)
 end) ]]
 
+-- Calculate the Fare amount
 CreateThread(function()
     while true do
         Wait(2000)
@@ -587,17 +571,7 @@ CreateThread(function()
     end
 end)
 
-CreateThread(function()
-    while true do
-        Wait(250)
-        if QBCore.Functions.GetPlayerData().job.name == 'jynx' and NpcDuty then
-            if not NpcData.Active then
-                TriggerEvent('fb-jynx:client:DoNpcRide')
-            end
-        end
-    end
-end)
-
+-- Disable the meter if the player leaves the vehicle
 CreateThread(function()
     while true do
         if not IsPedInAnyVehicle(PlayerPedId(), false) then
@@ -613,6 +587,7 @@ CreateThread(function()
     end
 end)
 
+-- Reckless Driving Detection Thread
 CreateThread(function()
     while true do
         Wait(1000)
@@ -630,9 +605,10 @@ CreateThread(function()
     end
 end)
 
+-- Crash Detection Thread
 CreateThread(function()
     while true do
-        Wait(100) -- Check every 100ms for collision
+        Wait(100) -- Check every 100ms for a collision
         local playerPed = PlayerPedId()
 
         -- Ensure the player is in a vehicle
@@ -645,21 +621,20 @@ CreateThread(function()
                 local health = GetEntityHealth(vehicle)
                 local coords = GetEntityCoords(vehicle)
                 local damage = GetVehicleBodyHealth(vehicle)
-
-                -- Customize detection thresholds
                 if NpcData.NpcTaken then
-                    if speed > 10 and health < 1000 then
+                    if speed > 10 and health < 1000 then -- Check speed to not screw over your ride when random NPCs crash into you at a stop light.
                         crashCount = crashCount + 1
-                        print('Crashes: ' .. crashCount)
-                        --print('Collision Speed: ' .. speed)
-                        --print('Collision Health: ' .. health)
-                        --print('Coords = x:' .. coords.x .. ' y:' .. coords.y .. ' z:' .. coords.z)
-                        --print('Collision Damage: ' .. 1000 - damage)
+                        if Config.DebugCode then
+                            print('Crashes: ' .. crashCount)
+                            print('Collision Speed: ' .. speed)
+                            print('Collision Health: ' .. health)
+                            print('Coords = x:' .. coords.x .. ' y:' .. coords.y .. ' z:' .. coords.z)
+                            print('Collision Damage: ' .. 1000 - damage)
+                        end
 
-                        -- Notify the player
                         QBCore.Functions.Notify('Crashes during this ride: ' .. crashCount .. '', 'error')
 
-                        -- Optional: Prevent repeated detection for the same collision
+                        -- Prevent repeated detection for the same collision
                         Wait(1000) -- Wait 5 seconds before detecting again
                     end
                 end
@@ -852,9 +827,6 @@ function dropNpcPoly()
                 if IsControlJustPressed(0, 38) then
                     exports['qb-core']:KeyPressed()
                     local veh = GetVehiclePedIsIn(ped, 0)
-                    TaskLeaveVehicle(NpcData.Npc, veh, 0)
-                    SetEntityAsMissionEntity(NpcData.Npc, false, true)
-                    SetEntityAsNoLongerNeeded(NpcData.Npc)
                     local targetCoords = Config.NPCLocations.PickupLocations[NpcData.LastNpc]
                     TaskGoStraightToCoord(NpcData.Npc, targetCoords.x, targetCoords.y, targetCoords.z, 1.0, -1, 0.0, 0.0)
                     SendNUIMessage({
@@ -862,6 +834,7 @@ function dropNpcPoly()
                     })
                     if not recklessDriving then
                         local calcTip = 0
+                        local bonusTip = math.random(1, 5)
                         if crashCount > 0 then
                             calcTip = math.ceil(meterData.currentFare / crashCount)
                         else
@@ -871,6 +844,9 @@ function dropNpcPoly()
                         if Tip < 5 then
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
                             TriggerEvent('fb-jynx:client:rideCompleted', 5)
+                        elseif Config.bonusTipChance then
+                            TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip * 2)
+                            TriggerEvent('fb-jynx:client:rideCompleted', Tip * 2)
                         else
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
                             TriggerEvent('fb-jynx:client:rideCompleted', Tip)
@@ -880,13 +856,23 @@ function dropNpcPoly()
                         SendNUIMessage({
                             action = 'resetMeter'
                         })
-                        QBCore.Functions.Notify(Lang:t('info.person_was_dropped_off'), 'success')
                         if NpcData.DeliveryBlip ~= nil then
                             RemoveBlip(NpcData.DeliveryBlip)
                         end
                         ResetNpcTask()
                         delieveryZone:destroy()
                         recklessDriving = false
+                        TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
+
+                        if NpcDuty then
+                            QBCore.Functions.Notify(Lang:t("info.ride_completed"), "success")
+                            if not NpcData.Active then
+                                TriggerEvent('fb-jynx:client:DoNpcRide')
+                            end
+                        else
+                            QBCore.Functions.Notify(Lang:t("info.ride_completed_off_duty"), "success")
+                        end
+
                         break
                     else
                         local calcTip = 0
@@ -899,6 +885,9 @@ function dropNpcPoly()
                         if Tip < 5 then
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, 5)
                             TriggerEvent('fb-jynx:client:rideCompleted', 5)
+                        elseif Config.bonusTipChance then
+                            TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip * 2)
+                            TriggerEvent('fb-jynx:client:rideCompleted', Tip * 2)
                         else
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
                             TriggerEvent('fb-jynx:client:rideCompleted', Tip)
@@ -908,17 +897,24 @@ function dropNpcPoly()
                         SendNUIMessage({
                             action = 'resetMeter'
                         })
-                        QBCore.Functions.Notify(Lang:t('info.person_was_dropped_off'), 'success')
                         if NpcData.DeliveryBlip ~= nil then
                             RemoveBlip(NpcData.DeliveryBlip)
                         end
                         ResetNpcTask()
                         delieveryZone:destroy()
                         recklessDriving = false
+                        TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
+
+                        if NpcDuty then
+                            QBCore.Functions.Notify(Lang:t("info.ride_completed"), "success")
+                            if not NpcData.Active then
+                                TriggerEvent('fb-jynx:client:DoNpcRide')
+                            end
+                        else
+                            QBCore.Functions.Notify(Lang:t("info.ride_completed_off_duty"), "success")
+                        end
+
                         break
-                    end
-                    if NpcDuty then
-                        QBCore.Functions.Notify(Lang:t('ride_completed'), "info")
                     end
                 end
             end
@@ -926,3 +922,23 @@ function dropNpcPoly()
         end
     end)
 end
+
+RegisterNetEvent('fb-jynx:client:updatesql', function(feeJynx) -- Slip the creators of this script a little something
+--CHANGE THIS ACCOUNT NUMBER TO THE JYNX BUSINESS BANK ACCOUNT
+local JYNX_BANK_ID = "4"
+local JYNX_BANK_NAME = "Jynx Business Account"
+--CHANGE THIS ACCOUNT NUMBER TO THE JYNX BUSINESS BANK ACCOUNT
+
+exports['oxmysql']:execute(
+    'UPDATE ps_banking_accounts SET balance = balance + ? WHERE id = ? and holder = ?',
+    { feeJynx, JYNX_BANK_ID, JYNX_BANK_NAME },
+    function(affectedRows)
+        if affectedRows and affectedRows > 0 then
+            print("[Server] Fee ($" .. feeJynx .. ") successfully sent to Jynx bank account.")
+        else
+            print("^1[Server] Warning: Jynx bank account number not found. Fee not transferred.^7")
+            TriggerClientEvent("QBCore:Notify", src, "Error: Could not transfer fee to Jynx bank account. Please contact support.", "error")
+        end
+    end
+)
+end)

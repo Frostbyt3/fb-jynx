@@ -15,7 +15,8 @@ local Translations = {
         ["drop_off_npc"] = "[E] Drop-off Passenger",
         ["call_npc"] = "[E] Pick-up Passenger",
         ["blip_name"] = "Jynx HQ",
-        ["ride_completed"] = "Ride Completed! Requesting new ride..."
+        ["ride_completed"] = "Ride Completed! Requesting new ride...",
+        ["ride_completed_off_duty"] = "Ride Completed! You are now off duty"
     }
 }
 
