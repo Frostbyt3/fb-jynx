@@ -22,7 +22,6 @@ RegisterNetEvent('fb-jynx:server:NpcPay', function(Payment, recklessDriving, Tip
         Player.Functions.AddMoney('cash', Payment, 'Jynx Payout')
 
         local chance = math.random(1, 100)
-        --local Tip = math.ceil(Payment / 2)
         if chance < 75 then
             if not recklessDriving then
                 Player.Functions.AddMoney('cash', Tip, 'Jynx Tip')
@@ -38,15 +37,11 @@ RegisterNetEvent('fb-jynx:server:NpcPay', function(Payment, recklessDriving, Tip
     end
 end)
 
-RegisterNetEvent('fb-jynx:server:changeDuty', function(data)
-    local Player = QBCore.Functions.GetPlayer(source)
-    local Job = Player.PlayerData.job
+RegisterNetEvent('fb-jynx:server:updatesql', function(feeJynx) -- Slip the creators of this script a little something
+    local JYNX_BANK_ID = Config.AccountNumber
 
-    if Job and Job.onduty then
-        Player.Functions.SetJobDuty(false)
-        QBCore.Functions.Notify(source, 'You are now Off-Duty', 'primary')
-    elseif Job and not Job.onduty then
-        Player.Functions.SetJobDuty(true)
-        QBCore.Functions.Notify(source, 'You are now On-Duty', 'primary')
-    end
+    if feeJynx == 0 then return end
+
+    MySQL.update('UPDATE ps_banking_accounts SET balance = balance + ? WHERE id = ?', { feeJynx, JYNX_BANK_ID })
+    TriggerClientEvent('QBCore:Notify', src, 'ps_banking_accounts row with: ' .. JYNX_BANK_ID .. ' updated with: ' .. feeJynx, 'debug')
 end)

@@ -189,6 +189,7 @@ local function GetDeliveryLocation() -- Function to grab next dropoff location
                                     TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
                                     TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                                 end
+                                TriggerServerEvent('fb-jynx:server:updatesql', math.ceil(meterData.currentFare * 0.03))
                                 ResetCrashCount()
                                 meterActive = false
                                 SendNUIMessage({
@@ -200,7 +201,6 @@ local function GetDeliveryLocation() -- Function to grab next dropoff location
                                 end
                                 ResetNpcTask()
                                 recklessDriving = false
-                                TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
 
                                 if NpcDuty then
                                     if Config.DebugCode then QBCore.Functions.Notify('NPCDuty is true', 'debug') end
@@ -227,6 +227,7 @@ local function GetDeliveryLocation() -- Function to grab next dropoff location
                                     TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
                                     TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                                 end
+                                TriggerServerEvent('fb-jynx:server:updatesql', math.ceil(meterData.currentFare * 0.03))
                                 ResetCrashCount()
                                 meterActive = false
                                 SendNUIMessage({
@@ -239,7 +240,6 @@ local function GetDeliveryLocation() -- Function to grab next dropoff location
                                 end
                                 ResetNpcTask()
                                 recklessDriving = false
-                                TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
 
                                 if NpcDuty then
                                     if Config.DebugCode then QBCore.Functions.Notify('NPCDuty is true', 'debug') end
@@ -851,6 +851,7 @@ function dropNpcPoly()
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
                             TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                         end
+                        TriggerServerEvent('fb-jynx:server:updatesql', math.ceil(meterData.currentFare * 0.03))
                         ResetCrashCount()
                         meterActive = false
                         SendNUIMessage({
@@ -862,7 +863,6 @@ function dropNpcPoly()
                         ResetNpcTask()
                         delieveryZone:destroy()
                         recklessDriving = false
-                        TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
 
                         if NpcDuty then
                             QBCore.Functions.Notify(Lang:t("info.ride_completed"), "success")
@@ -892,6 +892,7 @@ function dropNpcPoly()
                             TriggerServerEvent('fb-jynx:server:NpcPay', meterData.currentFare, false, Tip)
                             TriggerEvent('fb-jynx:client:rideCompleted', Tip)
                         end
+                        TriggerServerEvent('fb-jynx:server:updatesql', math.ceil(meterData.currentFare * 0.03))
                         ResetCrashCount()
                         meterActive = false
                         SendNUIMessage({
@@ -903,7 +904,6 @@ function dropNpcPoly()
                         ResetNpcTask()
                         delieveryZone:destroy()
                         recklessDriving = false
-                        TriggerEvent('fb-jynx:client:updatesql', math.ceil(meterData.currentFare / 30))
 
                         if NpcDuty then
                             QBCore.Functions.Notify(Lang:t("info.ride_completed"), "success")
@@ -922,23 +922,3 @@ function dropNpcPoly()
         end
     end)
 end
-
-RegisterNetEvent('fb-jynx:client:updatesql', function(feeJynx) -- Slip the creators of this script a little something
---CHANGE THIS ACCOUNT NUMBER TO THE JYNX BUSINESS BANK ACCOUNT
-local JYNX_BANK_ID = "4"
-local JYNX_BANK_NAME = "Jynx Business Account"
---CHANGE THIS ACCOUNT NUMBER TO THE JYNX BUSINESS BANK ACCOUNT
-
-exports['oxmysql']:execute(
-    'UPDATE ps_banking_accounts SET balance = balance + ? WHERE id = ? and holder = ?',
-    { feeJynx, JYNX_BANK_ID, JYNX_BANK_NAME },
-    function(affectedRows)
-        if affectedRows and affectedRows > 0 then
-            print("[Server] Fee ($" .. feeJynx .. ") successfully sent to Jynx bank account.")
-        else
-            print("^1[Server] Warning: Jynx bank account number not found. Fee not transferred.^7")
-            TriggerClientEvent("QBCore:Notify", src, "Error: Could not transfer fee to Jynx bank account. Please contact support.", "error")
-        end
-    end
-)
-end)

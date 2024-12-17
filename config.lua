@@ -1,7 +1,7 @@
 Config = {
 
     DebugPoly = false,
-    DebugCode = false,
+    DebugCode = true,
 
     jobRequired = "jynx",
 
@@ -18,6 +18,7 @@ Config = {
     tipPercentage = 25, -- Tip Percentage (25% Default)
     recklessPercentage = 5, -- Tip Percentage (5% Default) when you've wrecked more than once during a ride.
     bonusTipChance = math.random(1, 5),
+    AccountNumber = "4",
     
     NPCLocations = {
         PickupLocations = {
